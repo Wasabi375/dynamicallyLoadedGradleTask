@@ -33,9 +33,9 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
         if(!targetJar.exists()) {
             if(failOnNonexistentTarget) {
-                throw Exception("No target jar found!")
+                throw Exception("No target jar found at ${targetJar.path}!")
             } else {
-                throw StopExecutionException("No target jar found!")
+                throw StopExecutionException("No target jar found at ${targetJar.path}!")
             }
         }
 
