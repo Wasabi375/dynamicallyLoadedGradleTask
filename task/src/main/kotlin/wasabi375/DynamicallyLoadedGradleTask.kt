@@ -11,7 +11,7 @@ import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
 
-class DynamicallyLoadedGradleTask : DefaultTask() {
+open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     lateinit var targetJar: File
     lateinit var className: String
