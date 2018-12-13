@@ -2,7 +2,7 @@ package wasabi375.dynamicallyLoadedGradleTask
 
 import java.io.File
 
-abstract class Task (var inputDir: File, var outputDir: File, var input: String) {
+abstract class Task (var inputDir: File, var outputDir: File) {
 
     abstract fun execute(incrementalInput: IncrementalInput)
 }
