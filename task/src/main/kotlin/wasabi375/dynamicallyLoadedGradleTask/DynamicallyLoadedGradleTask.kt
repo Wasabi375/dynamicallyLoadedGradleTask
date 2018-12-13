@@ -68,12 +68,11 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
 
         val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()))
-        @Suppress("UNCHECKED_CAST") val clazz = classLoader.loadClass(className) as Class<Any>
+        val clazz = classLoader.loadClass(className)
 
         check(clazz.isInstance(Task::class.java))
 
-        val taskInstance = clazz.getDeclaredConstructor(File::class.java, File::class.java, String::class.java)
+        return clazz.getDeclaredConstructor(File::class.java, File::class.java, String::class.java)
             .newInstance(inputDir, outputDir, input) as Task
-        return taskInstance
     }
 }
