@@ -1,3 +1,4 @@
 rootProject.name = 'dynamicallyLoadedGradleTask'
 
 include 'task'
+include 'interface'
