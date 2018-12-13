@@ -68,7 +68,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
 
         val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()))
-        @Suppress("UNCHECKED_CAST") val clazz = Class.forName(className, true, classLoader) as Class<Any>
+        @Suppress("UNCHECKED_CAST") val clazz = classLoader.loadClass(className) as Class<Any>
 
         check(clazz.isInstance(Task::class.java))
 
