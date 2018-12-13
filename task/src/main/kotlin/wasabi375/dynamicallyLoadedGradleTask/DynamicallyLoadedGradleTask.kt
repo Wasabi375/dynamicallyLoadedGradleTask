@@ -67,13 +67,13 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             }
         }
 
-        val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()))
+        val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()), Task::class.java.classLoader)
         val clazz = classLoader.loadClass(className) as Class<out Any>
 
         println("superclass: ${clazz.superclass.canonicalName}")
 
         return clazz.getDeclaredConstructor(File::class.java, File::class.java, String::class.java)
             .newInstance(inputDir, outputDir, input) as? Task ?:
-                throw AssertionError("Task class needs to be a subtype of 'wasabi375.dynamicallyLoadedGradleTask.Task'")
+                throw AssertionError("Task class needs to be a subtype of '${Task::class.java.canonicalName}'")
     }
 }
