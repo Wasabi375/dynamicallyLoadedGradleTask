@@ -68,9 +68,9 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
 
         val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()))
-        val clazz = classLoader.loadClass(className)
+        val clazz = classLoader.loadClass(className) as Class<out Any>
 
-        check(clazz.isInstance(Task::class.java))
+        check(Task::class.java.isAssignableFrom(clazz)) { "Task class needs to be a subtype of 'wasabi375.dynamicallyLoadedGradleTask.Task'" }
 
         return clazz.getDeclaredConstructor(File::class.java, File::class.java, String::class.java)
             .newInstance(inputDir, outputDir, input) as Task
