@@ -67,7 +67,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()), Task::class.java.classLoader)
         val clazz = classLoader.loadClass(className) as Class<out Any>
 
-        return clazz.getDeclaredConstructor(File::class.java, File::class.java, String::class.java)
+        return clazz.getDeclaredConstructor(File::class.java, File::class.java)
             .newInstance(inputDir, outputDir) as? Task ?:
                 throw AssertionError("Task class needs to be a subtype of '${Task::class.java.canonicalName}'")
     }
