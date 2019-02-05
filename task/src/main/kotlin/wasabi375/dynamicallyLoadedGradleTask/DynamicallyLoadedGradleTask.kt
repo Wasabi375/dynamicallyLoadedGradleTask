@@ -77,4 +77,20 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
     }
 }
 
-class MyLoader(urls: Array<URL>, parent: ClassLoader) : URLClassLoader(urls, parent)
+class MyLoader(urls: Array<URL>, parent: ClassLoader) : URLClassLoader(urls, parent) {
+
+    override fun loadClass(name: String?, resolve: Boolean): Class<*> {
+        try {
+            return super.loadClass(name, resolve)
+        } catch(e: ClassNotFoundException) {
+            val c = findClass(name)
+
+            if(c != null) {
+                if(resolve)
+                    resolveClass(c)
+                return c
+            }
+            throw e
+        }
+    }
+}
