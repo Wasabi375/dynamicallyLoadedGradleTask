@@ -67,9 +67,8 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
         val parentClassLoader = Thread.currentThread().contextClassLoader
         val classLoader = MyLoader(arrayOf(targetJar.toURI().toURL()), parentClassLoader)
-        Thread.currentThread().contextClassLoader = classLoader
 
-        val clazz = Class.forName(className) as Class<out Any>
+        val clazz = classLoader.loadClass(className) as Class<out Any>
 
         return clazz.getDeclaredConstructor(File::class.java, File::class.java)
             .newInstance(inputDir, outputDir) as? Task ?:
@@ -79,7 +78,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
 class MyLoader(urls: Array<URL>, parent: ClassLoader) : URLClassLoader(urls, parent) {
 
-    override fun loadClass(name: String?, resolve: Boolean): Class<*> {
+    override fun loadClass(name: String, resolve: Boolean): Class<*> {
         try {
             return super.loadClass(name, resolve)
         } catch(e: ClassNotFoundException) {
