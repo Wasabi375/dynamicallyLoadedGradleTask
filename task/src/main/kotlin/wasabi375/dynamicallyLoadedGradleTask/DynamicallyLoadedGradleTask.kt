@@ -10,7 +10,7 @@ import java.net.URLClassLoader
 
 open class DynamicallyLoadedGradleTask : DefaultTask() {
 
-    lateinit var targetJar: File
+    lateinit var targetJars: List<File>
     lateinit var className: String
 
     var failOnNonexistentTarget: Boolean = true
@@ -57,16 +57,18 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
     }
 
     private fun loadTaskInstance(): Task {
-        if (!targetJar.exists()) {
+        val missing = targetJars.filter { !it.exists() }
+        if (missing.isNotEmpty()) {
+            val missingPaths = missing.joinToString(", ", "[", "]")
             if (failOnNonexistentTarget) {
-                throw Exception("No target jar found at ${targetJar.path}!")
+                throw Exception("Target jars missing: $missingPaths!")
             } else {
-                throw StopExecutionException("No target jar found at ${targetJar.path}!")
+                throw StopExecutionException("Target jars missing: $missingPaths!")
             }
         }
 
         val parentClassLoader = Thread.currentThread().contextClassLoader
-        val classLoader = MyLoader(arrayOf(targetJar.toURI().toURL()), parentClassLoader)
+        val classLoader = MyLoader(targetJars.map { it.toURI().toURL() }.toTypedArray(), parentClassLoader)
 
         val clazz = classLoader.loadClass(className) as Class<out Any>
 
