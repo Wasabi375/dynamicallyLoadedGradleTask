@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import java.io.File
+import java.net.URL
 import java.net.URLClassLoader
 
 
@@ -64,13 +65,16 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             }
         }
 
-        logger.warn("Load class loader now!!")
+        val parentClassLoader = Thread.currentThread().contextClassLoader
+        val classLoader = MyLoader(arrayOf(targetJar.toURI().toURL()), parentClassLoader)
+        Thread.currentThread().contextClassLoader = classLoader
 
-        val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()), Thread.currentThread().contextClassLoader)
-        val clazz = classLoader.loadClass(className) as Class<out Any>
+        val clazz = Class.forName(className) as Class<out Any>
 
         return clazz.getDeclaredConstructor(File::class.java, File::class.java)
             .newInstance(inputDir, outputDir) as? Task ?:
                 throw AssertionError("Task class needs to be a subtype of '${Task::class.java.canonicalName}'")
     }
 }
+
+class MyLoader(urls: Array<URL>, parent: ClassLoader) : URLClassLoader(urls, parent)
