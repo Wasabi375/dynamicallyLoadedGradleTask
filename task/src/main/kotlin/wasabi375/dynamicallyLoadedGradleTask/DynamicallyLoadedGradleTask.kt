@@ -64,7 +64,9 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             }
         }
 
-        val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()), Thread.currentThread().getContextClassLoader())
+        logger.warn("Load class loader now!!")
+
+        val classLoader = URLClassLoader(arrayOf(targetJar.toURI().toURL()), Thread.currentThread().contextClassLoader)
         val clazz = classLoader.loadClass(className) as Class<out Any>
 
         return clazz.getDeclaredConstructor(File::class.java, File::class.java)
