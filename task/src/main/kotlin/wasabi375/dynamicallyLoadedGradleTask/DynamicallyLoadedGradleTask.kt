@@ -67,6 +67,10 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             }
         }
 
+        for(url in targetJars) {
+            logger.warn(url.toString())
+        }
+
         val parentClassLoader = Thread.currentThread().contextClassLoader
         val classLoader = constructClassLoader(targetJars.map { it.toURI().toURL() }, parentClassLoader)
 
