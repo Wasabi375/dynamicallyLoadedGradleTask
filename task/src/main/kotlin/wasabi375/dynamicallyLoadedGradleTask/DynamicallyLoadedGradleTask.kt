@@ -10,7 +10,7 @@ import java.net.URLClassLoader
 
 open class DynamicallyLoadedGradleTask : DefaultTask() {
 
-    lateinit var targetJars: List<File>
+    lateinit var targetJar: File
     lateinit var className: String
 
     var failOnNonexistentTarget: Boolean = true
@@ -57,40 +57,22 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
     }
 
     private fun loadTaskInstance(): Task {
-        val missing = targetJars.filter { !it.exists() }
-        if (missing.isNotEmpty()) {
-            val missingPaths = missing.joinToString(", ", "[", "]")
+        if (!targetJar.exists()) {
             if (failOnNonexistentTarget) {
-                throw Exception("Target jars missing: $missingPaths!")
+                throw Exception("No target jar found at ${targetJar.path}!")
             } else {
-                throw StopExecutionException("Target jars missing: $missingPaths!")
+                throw StopExecutionException("No target jar found at ${targetJar.path}!")
             }
         }
 
-        for(url in targetJars) {
-            logger.warn(url.toString())
-        }
-
-        val parentClassLoader = Thread.currentThread().contextClassLoader
-        val classLoader = constructClassLoader(targetJars.map { it.toURI().toURL() }, parentClassLoader)
-
+        val classLoader = MyLoader(arrayOf(targetJar.toURI().toURL()), Thread.currentThread().getContextClassLoader())
         val clazz = classLoader.loadClass(className) as Class<out Any>
 
         return clazz.getDeclaredConstructor(File::class.java, File::class.java)
             .newInstance(inputDir, outputDir) as? Task ?:
-                throw AssertionError("Task class needs to be a subtype of '${Task::class.java.canonicalName}'")
-    }
-
-    private fun constructClassLoader(urls: List<URL>, parent: ClassLoader): ClassLoader {
-        var current = parent
-
-        for(url in urls) {
-            current = MyLoader(arrayOf(url), current)
-        }
-        return current
+        throw AssertionError("Task class needs to be a subtype of '${Task::class.java.canonicalName}'")
     }
 }
-
 class MyLoader(urls: Array<URL>, parent: ClassLoader) : URLClassLoader(urls, parent) {
 
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
