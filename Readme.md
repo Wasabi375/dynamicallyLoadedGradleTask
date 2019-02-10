@@ -11,19 +11,19 @@ At the start the program gets all data about the files in the following way:
 
 | Master | |
 | --- | --- |
-| Input Dir ||
+| input dir ||
 | \<input dir> ||
-| Output Dir ||
+| output dir ||
 | \<output dir> ||
-| Total Count|  |
+| total count|  |
 | \<total file count> | |
-| Total Modified | |
+| total modified | |
 | \<total modified count> ||
-| Total Added ||
+| total added ||
 | \<total added count> ||
-| Total Removed ||
+| total removed ||
 | \<total removed count> ||
-| Total Unchanged ||
+| total unchanged ||
 | \<total unchanged count> ||
 
 After that client can ask for each of those file categories. The following client messages are by the client are answered
@@ -56,4 +56,7 @@ the gradle task fails.
 Anything written to the standard err stream will be logged as an error. In order to achieve different logging levels
 the first message send to the client should be the log level `{ trace, info, warn, error }` followed in a new line by the message.
 If the message is multiple lines long, the log level should be followed by the line count, e.g `warn 3` `...`.
- 
+
+## New Line
+
+The new line character should be `\n`
