@@ -55,7 +55,7 @@ the gradle task fails.
 
 Anything written to the standard err stream will be logged as an error. In order to achieve different logging levels
 the first message send to the client should be the log level `{ trace, info, warn, error }` followed in a new line by the message.
-If the message is multiple lines long, the log level should be followed by the line count, e.g `warn 3` `...`.
+If the message is multiple lines long, the log level should be followed by the line count, e.g `warn 3\n...`.
 
 ## New Line
 

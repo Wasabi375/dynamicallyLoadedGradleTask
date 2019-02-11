@@ -28,15 +28,13 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private var logRestAndFinish = false
 
-    val programLogger: Logger = LoggerFactory.getLogger("Dynamic Task Program")!!
+    var programLogger: Logger = LoggerFactory.getLogger("Dynamic Task Program")!!
 
     private lateinit var data: IncrementalInput
 
 
     @TaskAction
     fun execute(inputs: IncrementalTaskInputs) {
-
-
 
         data = convertInputs(inputs)
 
