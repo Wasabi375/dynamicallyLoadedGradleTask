@@ -3,16 +3,14 @@ package wasabi375.dynamicgradletask
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.InputStream
+import java.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import wasabi375.dynamicgradletask.internal.toLineChannel
 import java.io.BufferedWriter
 import java.lang.StringBuilder
-import java.nio.charset.Charset
 
 open class DynamicallyLoadedGradleTask : DefaultTask() {
 
@@ -112,7 +110,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private suspend fun Process.handleErrors() {
 
-        val channel = errorStream.toLineChannel()
+        val channel = errorStream.toLineChannel(this@DynamicallyLoadedGradleTask::logRestAndFinish)
         channel.consumeEach {
             programLogger.error(it)
         }
@@ -120,7 +118,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private suspend fun Process.handleInput() {
 
-        val channel = inputStream.toLineChannel()
+        val channel = inputStream.toLineChannel(this@DynamicallyLoadedGradleTask::logRestAndFinish)
         val writer = outputStream.bufferedWriter()
 
         while(true) {
@@ -159,7 +157,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             return
         }
         when(argument) {
-            null -> data.files.asSequence().map { it.file.absolutePath }.forEach { writer.sendln(it) }
+            null -> data.files.asSequence().forEach { writer.sendln(it) }
             "modified" -> data.modified.map { it.file.absolutePath }.forEach { writer.sendln(it) }
             "added" -> data.added.map { it.file.absolutePath }.forEach { writer.sendln(it) }
             "removed" -> data.removed.map { it.file.absolutePath }.forEach { writer.sendln(it) }
@@ -168,7 +166,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
     }
 
-    private val nextFileSeq by lazy { data.files.asSequence().map { it.file.absolutePath }.iterator() }
+    private val nextFileSeq by lazy { data.files.iterator() }
     private val nextModifiedSeq by lazy { data.modified.map { it.file.absolutePath }.iterator() }
     private val nextAddedSeq by lazy { data.added.map { it.file.absolutePath }.iterator() }
     private val nextRemovedSeq by lazy { data.removed.map { it.file.absolutePath }.iterator() }
@@ -181,7 +179,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
 
         when(argument) {
-            null -> writer.sendln(if(nextFileSeq.hasNext()) nextFileSeq.next() else "")
+            null -> writer.sendln(if(nextFileSeq.hasNext()) nextFileSeq.next() else null)
             "modified" -> writer.sendln(if(nextModifiedSeq.hasNext()) nextModifiedSeq.next() else "")
             "added" -> writer.sendln(if(nextAddedSeq.hasNext()) nextAddedSeq.next() else "")
             "removed" -> writer.sendln(if(nextRemovedSeq.hasNext()) nextRemovedSeq.next() else "")
@@ -216,6 +214,9 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
         with(outputStream.bufferedWriter()) {
 
+            sendln("incremental")
+            sendln(data.isIncremental)
+
             sendln("input dir")
             sendln(inputDir.absolutePath)
             sendln("output dir")
@@ -238,44 +239,18 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
     }
 
-
-    private suspend fun InputStream.toLineChannel(): ReceiveChannel<String> = coroutineScope {
-            val utf8 = Charset.forName("UTF8")
-
-            produce {
-
-                var line = ""
-                while(true) {
-                    withContext(Dispatchers.IO) {
-                        while (available() == 0) {
-                            delay(10)
-                        }
-                        val count = available()
-                        val buffer = ByteArray(count)
-                        read(buffer, 0, count)
-
-                        line += String(buffer, utf8)
-                    }
-
-                    if(line.contains('\n')){
-                        val index = line.indexOf('\n')
-                        val result = line.substring(0, index)
-                        // plus 1 skips the line feed
-                        line = if(index + 1 >= line.length) "" else line.substring(index + 1)
-
-                        send(result)
-                    }
-
-                    if(logRestAndFinish && line.isBlank()) {
-                        break
-                    }
-                }
-            }
-        }
-
     private fun BufferedWriter.sendln(s: String) {
         logger.trace("Send data: $s")
         appendln(s)
     }
     private fun BufferedWriter.sendln(i: Int) = sendln(i.toString())
+    private fun BufferedWriter.sendln(b: Boolean) = sendln(b.toString())
+
+    private fun BufferedWriter.sendln(f: FileDetail?) {
+        if(f == null) sendln("")
+        else {
+            val data = "${f.change.stringRepresentation}:${f.file.absolutePath}"
+            sendln(data)
+        }
+    }
 }

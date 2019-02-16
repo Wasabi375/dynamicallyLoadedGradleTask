@@ -25,11 +25,13 @@ data class IncrementalInput (val isIncremental: Boolean, val files: List<FileDet
 
 data class FileDetail(val file: File, val change: ChangeType)
 
-enum class ChangeType {
-    Modified,
-    Added,
-    Removed,
-    NoChange;
+enum class ChangeType(val stringRepresentation: String) {
+    Modified("mod"),
+    Added("add"),
+    Removed("rem"),
+    NoChange("none");
 
-    companion object
+    companion object {
+        fun fromName(name: String) = values().find { it.stringRepresentation == name } ?: throw IllegalArgumentException()
+    }
 }

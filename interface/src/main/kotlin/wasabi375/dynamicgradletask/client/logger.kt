@@ -3,20 +3,19 @@ package wasabi375.dynamicgradletask.client
 import java.io.PrintWriter
 import java.io.StringWriter
 
-
-enum class LogLevel(internal val l: String) {
-    Trace("trace"),
-    Info("info"),
-    Warn("warn"),
-    Error("error")
-}
-
 object Log {
+
+    enum class Level(internal val l: String) {
+        Trace("trace"),
+        Info("info"),
+        Warn("warn"),
+        Error("error")
+    }
 
     private fun println(s: String) = print("$s\n")
     private fun println() = print("\n")
 
-    fun log(level: LogLevel, message: String) {
+    fun log(level: Level, message: String) {
 
         val lines = message.split("\n")
         print(level.l)
@@ -27,12 +26,12 @@ object Log {
         for(line in lines) println(line)
     }
 
-    fun trace(message: String) = log(LogLevel.Trace, message)
-    fun info(message: String) = log(LogLevel.Info, message)
-    fun warn(message: String) = log(LogLevel.Warn, message)
-    fun error(message: String) = log(LogLevel.Error, message)
+    fun trace(message: String) = log(Level.Trace, message)
+    fun info(message: String) = log(Level.Info, message)
+    fun warn(message: String) = log(Level.Warn, message)
+    fun error(message: String) = log(Level.Error, message)
 
-    fun exception(e: Exception, message: String?, level: LogLevel = LogLevel.Error) {
+    fun exception(e: Throwable, message: String? = null, level: Level = Level.Error) {
         val writer = StringWriter()
         val printer = PrintWriter(writer)
 
@@ -47,4 +46,9 @@ object Log {
 
         printer.close()
     }
+}
+
+sealed class RecursiveMap<R, T> {
+    class Data<R, T>(val data: T): RecursiveMap<R, T>()
+    class Container<R, T>(private val map: Map<R, RecursiveMap<R, T>>) : RecursiveMap<R, T>(), Map<R, RecursiveMap<R, T>> by map
 }

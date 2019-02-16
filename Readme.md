@@ -11,6 +11,8 @@ At the start the program gets all data about the files in the following way:
 
 | Master | |
 | --- | --- |
+| incremental ||
+| true *or* false ||
 | input dir ||
 | \<input dir> ||
 | output dir ||
