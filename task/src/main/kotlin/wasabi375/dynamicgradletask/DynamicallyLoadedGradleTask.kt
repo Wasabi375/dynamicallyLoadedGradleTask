@@ -8,7 +8,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import wasabi375.dynamicgradletask.internal.toLineChannel
 import java.io.BufferedWriter
 import java.lang.StringBuilder
 
@@ -123,7 +122,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
         while(true) {
             val line = channel.receive()
-            logger.trace("received: $line")
+            logger.debug("received: $line")
             if(line.isBlank()) {
                 logger.warn("received empty line")
                 continue
@@ -203,7 +202,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         val text = textBuilder.toString()
 
         when(level){
-            "trace" -> programLogger.trace(text)
+            "trace" -> programLogger.debug(text)
             "info" -> programLogger.info(text)
             "warn" -> programLogger.warn(text)
             "error" -> programLogger.error(text)
@@ -240,7 +239,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
     }
 
     private fun BufferedWriter.sendln(s: String) {
-        logger.trace("Send data: $s")
+        logger.debug("Send data: $s")
         appendln(s)
     }
     private fun BufferedWriter.sendln(i: Int) = sendln(i.toString())
