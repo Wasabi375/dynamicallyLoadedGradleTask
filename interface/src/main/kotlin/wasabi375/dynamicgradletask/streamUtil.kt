@@ -1,12 +1,11 @@
-package wasabi375.dynamicgradletask.internal
+package wasabi375.dynamicgradletask
 
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.SelectClause1
 import kotlinx.coroutines.selects.SelectClause2
 import wasabi375.dynamicgradletask.client.Log
-import java.io.BufferedWriter
-import java.io.InputStream
+import java.io.*
 import java.lang.UnsupportedOperationException
 import kotlin.reflect.KProperty
 
@@ -105,3 +104,6 @@ inline class SendLineChannel(private val stream: BufferedWriter) : SendChannel<S
 
 @ExperimentalCoroutinesApi
 fun BufferedWriter.toSendLineChannel() = SendLineChannel(this)
+
+@ExperimentalCoroutinesApi
+fun OutputStream.toSendLineChannel() = BufferedWriter(PrintWriter(this)).toSendLineChannel()

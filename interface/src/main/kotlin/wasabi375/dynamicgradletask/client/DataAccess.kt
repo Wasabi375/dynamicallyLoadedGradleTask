@@ -3,8 +3,8 @@ package wasabi375.dynamicgradletask.client
 import wasabi375.dynamicgradletask.ChangeType
 import wasabi375.dynamicgradletask.FileDetail
 import wasabi375.dynamicgradletask.IncrementalInput
-import wasabi375.dynamicgradletask.internal.LineChannel
-import wasabi375.dynamicgradletask.internal.SendLineChannel
+import wasabi375.dynamicgradletask.LineChannel
+import wasabi375.dynamicgradletask.SendLineChannel
 import java.io.File
 
 data class StartupData(val isIncremental: Boolean,
