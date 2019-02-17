@@ -7,6 +7,7 @@ import kotlinx.coroutines.selects.SelectClause2
 import wasabi375.dynamicgradletask.client.Log
 import java.io.*
 import java.lang.UnsupportedOperationException
+import java.util.*
 import kotlin.reflect.KProperty
 
 // CLEANUP should be done using delegation in 1.3.30? (KT-27435): https://youtrack.jetbrains.com/issue/KT-27435
@@ -44,30 +45,16 @@ private fun ReceiveChannel<String>.asLineChannel() = LineChannel(this)
 suspend fun InputStream.toLineChannel(interruptSignal: KProperty<Boolean>? = null): LineChannel
         = coroutineScope {
     produce {
-
-        var line = ""
+        val scanner = Scanner(this@toLineChannel)
         while(true) {
             withContext(Dispatchers.IO) {
-                while (available() == 0) {
+                while (!scanner.hasNextLine()) {
                     delay(10)
                 }
-                val count = available()
-                val buffer = ByteArray(count)
-                read(buffer, 0, count)
-
-                line += String(buffer, Charsets.UTF_8)
+                send(scanner.nextLine())
             }
 
-            if(line.contains('\n')){
-                val index = line.indexOf('\n')
-                val result = line.substring(0, index)
-                // plus 1 skips the line feed
-                line = if(index + 1 >= line.length) "" else line.substring(index + 1)
-
-                send(result)
-            }
-
-            if(interruptSignal != null && interruptSignal.call() && line.isBlank()) {
+            if(interruptSignal != null && interruptSignal.call()) {
                 break
             }
         }
@@ -82,7 +69,7 @@ inline class SendLineChannel(private val stream: BufferedWriter) : SendChannel<S
     override val isFull: Boolean
         get() = false
     override val onSend: SelectClause2<String, SendChannel<String>>
-        get() = throw UnsupportedOperationException()
+        get() = throw UnsupportedOperationException()   // TODO figure out
 
     override fun close(cause: Throwable?): Boolean  {
         cause?.let {Log.exception(it) }
