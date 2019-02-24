@@ -13,7 +13,9 @@ import java.lang.StringBuilder
 
 open class DynamicallyLoadedGradleTask : DefaultTask() {
 
-    lateinit var targetJar: File
+    lateinit var target: String
+
+    var runInJava: Boolean = true
 
     var failOnNonexistentTarget: Boolean = true
 
@@ -25,6 +27,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private var logRestAndFinish = false
 
+    private val logger: Logger = LoggerFactory.getLogger("Dynamic Task Runner")!!
     var programLogger: Logger = LoggerFactory.getLogger("Dynamic Task Program")!!
 
     private lateinit var data: IncrementalInput
@@ -51,7 +54,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
             try {
                 val result = process.waitFor()
-                if (result != 0) {
+                if (process.exitValue() != 0 || result != 0) {
                     throw Exception("Sub program failed with error code $result")
                 }
             } finally {
@@ -99,12 +102,17 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private fun startProgram(): Process {
 
-        if (!targetJar.exists()) {
-            if (failOnNonexistentTarget) throw FileNotFoundException(targetJar.toString())
-            else throw StopExecutionException("No target jar")
+        if (runInJava) {
+            val targetFile = File(target)
+            if(!targetFile.exists()) {
+                if (failOnNonexistentTarget) throw FileNotFoundException(target.toString())
+                else throw StopExecutionException("No target jar")
+            }
         }
 
-        return Runtime.getRuntime().exec("java -jar $targetJar")
+        val command = if(runInJava) "java -jar $target" else target
+
+        return Runtime.getRuntime().exec(command)
     }
 
     private suspend fun Process.handleErrors() {
