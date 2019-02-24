@@ -68,6 +68,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             }
         } finally {
             if(process.isAlive) {
+                logger.error("Program did not terminate. It will be killed...")
                 process.destroy()
             }
         }
@@ -111,6 +112,8 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
 
         val command = if(runInJava) "java -jar $target" else target
+
+        logger.debug("Running: $command")
 
         return Runtime.getRuntime().exec(command)
     }
