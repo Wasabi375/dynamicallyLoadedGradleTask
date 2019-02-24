@@ -42,23 +42,21 @@ inline class LineChannel(private val channel: ReceiveChannel<String>) : ReceiveC
 private fun ReceiveChannel<String>.asLineChannel() = LineChannel(this)
 
 @ExperimentalCoroutinesApi
-suspend fun InputStream.toLineChannel(interruptSignal: KProperty<Boolean>? = null): LineChannel
-        = coroutineScope {
-    produce {
-        val scanner = Scanner(this@toLineChannel)
-        while(true) {
-            withContext(Dispatchers.IO) {
-                while (!scanner.hasNextLine()) {
-                    delay(10)
-                }
-                send(scanner.nextLine())
+suspend fun InputStream.toLineChannel(interruptSignal: KProperty<Boolean>? = null): LineChannel = GlobalScope.produce {
+    val scanner = Scanner(this@toLineChannel)
+    while (true) {
+        withContext(Dispatchers.IO) {
+            while (!scanner.hasNextLine()) {
+                delay(10)
             }
+            send(scanner.nextLine())
+        }
 
-            if(interruptSignal != null && interruptSignal.call()) {
-                break
-            }
+        if (interruptSignal != null && interruptSignal.call()) {
+            break
         }
     }
+
 }.asLineChannel()
 
 @ExperimentalCoroutinesApi
