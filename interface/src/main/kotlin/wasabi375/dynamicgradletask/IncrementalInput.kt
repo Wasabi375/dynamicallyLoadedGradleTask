@@ -2,7 +2,7 @@ package wasabi375.dynamicgradletask
 
 import java.io.File
 
-data class IncrementalInput (val isIncremental: Boolean, val files: List<FileDetail>) {
+data class IncrementalInput (val isIncremental: Boolean, val files: List<FileDetail>, val inputDir: File, val outputDir: File) {
 
     val removed get() = files.asSequence().filter { it.change == ChangeType.Removed }
 

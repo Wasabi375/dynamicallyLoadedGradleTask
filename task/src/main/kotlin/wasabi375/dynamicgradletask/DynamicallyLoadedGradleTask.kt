@@ -51,7 +51,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             val out = process.inputStream
             while(running) {
                 for (i in 0 until out.available()) {
-                    System.out.println("" + out.read())
+                    System.out.print("" + out.read())
                 }
                 Thread.sleep(10)
             }
@@ -86,7 +86,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             )
         }
 
-        return IncrementalInput(inputs.isIncremental, changedFiles)
+        return IncrementalInput(inputs.isIncremental, changedFiles, inputDir, outputDir)
     }
 
     private fun ChangeType.Companion.from(isAdded: Boolean, isModified: Boolean, isRemoved: Boolean) = when {
@@ -104,6 +104,9 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private fun createArgs(input: IncrementalInput): List<String> {
         val args = mutableListOf<String>()
+
+        args.add(input.inputDir.absolutePath)
+        args.add(input.outputDir.absolutePath)
 
         args.add(input.isIncremental.toString())
         args.add(input.files.size.toString())
