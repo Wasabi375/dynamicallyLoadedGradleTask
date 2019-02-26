@@ -105,6 +105,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
     private fun createArgs(input: IncrementalInput): List<String> {
         val args = mutableListOf<String>()
 
+        args.add(input.isIncremental.toString())
         args.add(input.files.size.toString())
 
         args.add(input.modifiedCount.toString())

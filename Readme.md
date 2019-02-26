@@ -6,6 +6,7 @@ A gradle task that let's you run a program and delegate the incremental task exe
 
 The file information is send via the program arguments:
 
+* isIncremental
 * number of files total
 * number of Modified
 * modified file paths
