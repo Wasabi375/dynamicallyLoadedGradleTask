@@ -31,8 +31,6 @@ open class DynamicallyLoadedGradleTask : Exec() {
     @TaskAction
     fun exec(inputs: IncrementalTaskInputs) {
 
-        println("Print TEST #################################################################")
-
         data = convertInputs(inputs)
 
         val args = createArgs(data).toMutableList()
