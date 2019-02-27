@@ -27,9 +27,6 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
     private lateinit var data: IncrementalInput
 
-    @Volatile
-    var running = true
-
     @TaskAction
     fun execute(inputs: IncrementalTaskInputs) {
 
@@ -38,41 +35,13 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         val args = createArgs(data)
         val process = startProgram(args)
 
-        val outThread = thread("output stream logging") {
-            val error = process.errorStream
-            while(running) {
-                for (i in 0 until error.available()) {
-                    System.err.print(error.read().toString())
-                }
-                Thread.sleep(10)
-            }
-        }
-        val errThread = thread("error stream logging") {
-            val out = process.inputStream
-            while(running) {
-                for (i in 0 until out.available()) {
-                    System.out.print(out.read().toString())
-                }
-                Thread.sleep(10)
-            }
-        }
+        process.waitFor()
 
-        try {
-            outThread.start()
-            errThread.start()
-
-            process.waitFor()
-
-        } finally {
-            if(process.isAlive) {
-                logger.error("Program did not terminate. It will be killed...")
-                process.destroy()
-            }
-            process.waitFor(5, TimeUnit.SECONDS)
-            running = false
-            outThread.join()
-            errThread.join()
+        if (process.isAlive) {
+            logger.error("Program did not terminate. It will be killed...")
+            process.destroyForcibly()
         }
+        process.waitFor(5, TimeUnit.SECONDS)
     }
 
     private fun convertInputs(inputs: IncrementalTaskInputs): IncrementalInput {
@@ -138,9 +107,11 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
         val command = if(runInJava) "java -jar $target" else target
 
-        logger.debug("Running: $command")
+        val builder = ProcessBuilder(command, *args.toTypedArray())
+        builder.redirectError(ProcessBuilder.Redirect.INHERIT)
+        builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
 
-        return Runtime.getRuntime().exec(command)
+        return builder.start()
     }
 }
 
