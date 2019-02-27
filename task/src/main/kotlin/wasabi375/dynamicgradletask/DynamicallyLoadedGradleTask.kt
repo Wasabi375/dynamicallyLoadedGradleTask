@@ -29,7 +29,7 @@ open class DynamicallyLoadedGradleTask : Exec() {
     private lateinit var data: IncrementalInput
 
     @TaskAction
-    fun execute(inputs: IncrementalTaskInputs) {
+    fun exec(inputs: IncrementalTaskInputs) {
 
         println("Print TEST #################################################################")
 
@@ -57,6 +57,8 @@ open class DynamicallyLoadedGradleTask : Exec() {
         errorOutput = System.err
 
         executable = command
+
+        super.exec()
     }
 
     private fun convertInputs(inputs: IncrementalTaskInputs): IncrementalInput {
