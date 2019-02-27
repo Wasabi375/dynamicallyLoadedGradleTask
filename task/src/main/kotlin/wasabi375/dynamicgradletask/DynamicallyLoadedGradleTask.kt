@@ -58,8 +58,8 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         }
 
         try {
-            outThread.run()
-            errThread.run()
+            outThread.start()
+            errThread.start()
 
             process.waitFor()
 
