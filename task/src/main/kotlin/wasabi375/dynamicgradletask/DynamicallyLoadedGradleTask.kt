@@ -107,13 +107,9 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             }
         }
 
-        val command = if(runInJava) "java -jar $target" else target
+        val command = if(runInJava) arrayOf("java",  "-jar", target) else arrayOf(target)
 
-        val builder = ProcessBuilder(command, *args.toTypedArray())
-        builder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-
-        return builder.start()
+        return ProcessBuilder(*command, *args.toTypedArray()).inheritIO().start()
     }
 }
 
