@@ -3,13 +3,14 @@ package wasabi375.dynamicgradletask
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.process.internal.DefaultExecAction
 import java.io.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 @Suppress("unused")
-open class DynamicallyLoadedGradleTask : DefaultTask() {
+open class DynamicallyLoadedGradleTask : Exec() {
 
     lateinit var target: String
 
@@ -34,16 +35,28 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
 
         data = convertInputs(inputs)
 
-        val args = createArgs(data)
-        val process = startProgram(args)
+        val args = createArgs(data).toMutableList()
 
-        process.waitFor()
-
-        if (process.isAlive) {
-            logger.error("Program did not terminate. It will be killed...")
-            process.destroyForcibly()
+        if (runInJava) {
+            val targetFile = File(target)
+            if(!targetFile.exists()) {
+                if (failOnNonexistentTarget) throw FileNotFoundException(target.toString())
+                else throw StopExecutionException("No target jar")
+            }
         }
-        process.waitFor(5, TimeUnit.SECONDS)
+
+        val command = if(runInJava) {
+            args.add(0, "-jar")
+            args.add(1, target)
+            "java"
+        } else
+            target
+
+        setArgs(args as List<String>)
+        standardOutput = System.out
+        errorOutput = System.err
+
+        executable = command
     }
 
     private fun convertInputs(inputs: IncrementalTaskInputs): IncrementalInput {
@@ -95,21 +108,6 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
         args.addAll(input.unchanged.map { it.file.absolutePath })
 
         return args
-    }
-
-    private fun startProgram(args: List<String>): Process {
-
-        if (runInJava) {
-            val targetFile = File(target)
-            if(!targetFile.exists()) {
-                if (failOnNonexistentTarget) throw FileNotFoundException(target.toString())
-                else throw StopExecutionException("No target jar")
-            }
-        }
-
-        val command = if(runInJava) arrayOf("java",  "-jar", target) else arrayOf(target)
-
-        return ProcessBuilder(*command, *args.toTypedArray()).inheritIO().start()
     }
 }
 
