@@ -42,7 +42,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             val error = process.errorStream
             while(running) {
                 for (i in 0 until error.available()) {
-                    System.out.println("" + error.read())
+                    System.err.print(error.read().toString())
                 }
                 Thread.sleep(10)
             }
@@ -51,7 +51,7 @@ open class DynamicallyLoadedGradleTask : DefaultTask() {
             val out = process.inputStream
             while(running) {
                 for (i in 0 until out.available()) {
-                    System.out.print("" + out.read())
+                    System.out.print(out.read().toString())
                 }
                 Thread.sleep(10)
             }
